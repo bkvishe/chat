@@ -1,0 +1,102 @@
+<html>
+    <title>Chat</title>
+    <body>
+        <table>
+            <tr>
+                <td><input class="chat-name" type="text" /></td>
+            </tr>
+            <tr>
+                <td><div class="chat-div" style="height:100px;"></div></td>
+            </tr>
+            <tr>
+               <td> <textarea class="chat-message"></textarea></td>
+            </tr>
+            <tr>
+                <td>
+                    <span>Status: </span>
+                    <span class="chat-status">Idel</span>
+                </td>
+            </tr>
+        </table>
+    </body>
+    <script src="http://127.0.0.1:8080/socket.io/socket.io.js"></script>
+
+    <script>
+        (function(){
+
+            var getNode = function(s){
+                    return document.querySelector(s);
+                },
+                status = getNode('.chat-status'),
+                chatDiv = getNode('.chat-div'),
+                textarea = getNode('.chat-message'),
+                chatName = getNode('.chat-name'),
+
+                statusDefault = status.textContent,
+
+                setStatus = function(s){
+
+                    status.textContent = s;
+
+                    if(s !== statusDefault){
+                        var delay =setTimeout(function(){
+                            setStatus(statusDefault);
+                        }, 4000);
+                    }
+                };
+
+                try{
+                    var socket = io.connect('http://127.0.0.1:8080');
+                }
+                catch(e){
+
+                }
+
+                if(socket !== undefined){
+
+                    //Display messages
+                    socket.on('output', function(data){
+                        
+                        if(data.length){
+                             console.log(data);
+                            //Loop through results
+                            for(var i = 0; i < data.length; i++){
+                               
+                                var message = document.createElement('div');
+
+                                message.setAttribute('style', 'margin-top:5px');
+                                message.textContent = data[i].name + ":" + data[i].message;
+
+                                //Append
+                                chatDiv.appendChild(message);
+                                chatDiv.insertBefore(message, chatDiv.firstChild);
+                            }
+                        }
+                    });
+
+                    //Listen for status
+                    socket.on('status', function(data){
+                        setStatus((typeof data === 'object') ? data.message : data);
+
+                        if(data.clear === true){
+                            textarea.value = '';
+                        }
+                    });
+
+                    //Listen for keydown
+                    textarea.addEventListener('keydown', function(event){
+                        var self = this,
+                            name = chatName.value;
+                        
+                        if(event.which == 13 && event.shiftKey == true){
+
+                            socket.emit('input', {
+                                name:name,
+                                message:self.value
+                            });
+                        }
+                    });
+                }
+        })();
+    </script>
+</html>
