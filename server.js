@@ -1,4 +1,4 @@
-var mongo = require('mongodb').MongoClient,
+var mongo111111111111 = require('mongodb').MongoClient,
     client = require('socket.io').listen(8080).sockets;
 
 mongo.connect('mongodb://130.211.207.39/chat', function(err, db){
